@@ -146,23 +146,16 @@ QtPropertyEditorView::QtPropertyEditorView(QWidget *parent) :
 void QtPropertyEditorView::drawRow(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItemV3 opt = option;
-    bool hasValue = true;
-    if (m_editorPrivate) {
-        QtProperty *property = m_editorPrivate->indexToProperty(index);
-        if (property)
-            hasValue = property->hasValue();
-    }
-    if (!hasValue && m_editorPrivate->markPropertiesWithoutValue()) {
-        const QColor c = option.palette.color(QPalette::Dark);
-        painter->fillRect(option.rect, c);
-        opt.palette.setColor(QPalette::AlternateBase, c);
-    } else {
-        const QColor c = m_editorPrivate->calculatedBackgroundColor(m_editorPrivate->indexToBrowserItem(index));
-        if (c.isValid()) {
-            painter->fillRect(option.rect, c);
-            opt.palette.setColor(QPalette::AlternateBase, c.lighter(112));
-        }
-    }
+
+    // [AJM]    There used to be code here that, from the looks of it, attempted to fill the whole row 
+    //          (including to the left of the actual item text / value), but it didn't quite work.
+    //          There's some kind of bug elsewhere in this Widget's code that prevents it from properly filling the background
+    //          of the QTreeView::branch:has-children:open image, and it appears that maybe it even fills this icon
+    //          with the expected background color early on in the program instead of keeping it transparent.
+    //          
+    //          I can't reproduce this behavior with a stock Qt TreeWidget, and I don't have a great explanation for this behavior at this time.
+    //          It would be nice to investigate this more later, but hopefully this will do for now.
+
     QTreeWidget::drawRow(painter, opt, index);
     QColor color = static_cast<QRgb>(QApplication::style()->styleHint(QStyle::SH_Table_GridLineColor, &opt));
     painter->save();
